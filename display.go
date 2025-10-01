@@ -8,11 +8,11 @@ import (
 )
 
 // displayMetrics shows a dstat-like terminal output of current metrics
-func displayMetrics() {
+func displayMetrics(config Config) {
 	// Print header
 	printHeader()
 
-	ticker := time.NewTicker(config.DisplayInterval)
+	ticker := time.NewTicker(config.Display.Interval)
 	defer ticker.Stop()
 
 	lineCount := 0

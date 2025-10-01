@@ -82,10 +82,10 @@ func collectNetworkMetric() {
 		}
 
 		// Apply warmup factor if enabled
-		effectiveMax := config.MaxConnections
-		if config.WarmupEnabled {
+		effectiveMax := config.Thresholds.MaxConnections
+		if config.Warmup.Enabled {
 			warmupFactor := getWarmupFactor()
-			effectiveMax = config.MaxConnections * warmupFactor
+			effectiveMax = config.Thresholds.MaxConnections * warmupFactor
 		}
 
 		// Determine status for connections
@@ -104,7 +104,7 @@ func collectNetworkMetric() {
 		cacheMutex.Unlock()
 
 		// Check each network interface for traffic
-		for _, iface := range config.NetworkInterfaces {
+		for _, iface := range config.Monitoring.NetworkInterfaces {
 			bytesPerSec, err := getNetworkBandwidth(iface)
 			if err != nil {
 				log.Printf("Error collecting network bandwidth for %s: %v", iface, err)

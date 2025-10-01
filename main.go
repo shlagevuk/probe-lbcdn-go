@@ -2,11 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 )
@@ -25,28 +23,9 @@ type HealthResponse struct {
 	Metrics   map[string]MetricStatus `json:"metrics"`
 }
 
-// ProbeConfig holds configuration for the probe
-type ProbeConfig struct {
-	WarmupEnabled      bool
-	WarmupDuration     time.Duration
-	MaxCPU             float64
-	MaxIOWait          float64
-	MaxIRQ             float64
-	MaxSoftIRQ         float64
-	MaxMemory          float64
-	MaxDisk            float64
-	MaxConnections     float64
-	DiskPaths          []string
-	NetworkInterfaces  []string
-	Port               string
-	LogFile            string
-	DisplayEnabled     bool
-	DisplayInterval    time.Duration
-	startTime          time.Time
-}
 
 var (
-	config      ProbeConfig
+	config      Config
 	metricCache = make(map[string]MetricStatus)
 	cacheMutex  sync.RWMutex
 )
@@ -86,73 +65,68 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Get executable directory for default log file
-	exePath, err := os.Executable()
-	if err != nil {
-		exePath = "."
+	// Parse command line flags
+	flags := parseCommandLineFlags()
+	
+	// Show help and exit
+	if flags.Help {
+		showHelp()
+		os.Exit(0)
 	}
-	exeDir := filepath.Dir(exePath)
-	defaultLogFile := filepath.Join(exeDir, "probe.log")
-
-	// Initialize configuration
-	config = ProbeConfig{
-		WarmupEnabled:     true,
-		WarmupDuration:    60 * time.Second,
-		MaxCPU:            80.0,
-		MaxIOWait:         20.0,
-		MaxIRQ:            5.0,
-		MaxSoftIRQ:        10.0,
-		MaxMemory:         90.0,
-		MaxDisk:           95.0,
-		MaxConnections:    1000.0,
-		DiskPaths:         []string{"/", "/var", "/tmp"},
-		NetworkInterfaces: []string{"eth0", "lo"},
-		Port:              ":8080",
-		LogFile:           defaultLogFile,
-		DisplayEnabled:    true,
-		DisplayInterval:   3 * time.Second,
-		startTime:         time.Now(),
+	
+	// Generate config file and exit
+	if flags.GenerateConfig {
+		if err := generateConfigFile(flags.ConfigFile); err != nil {
+			log.Fatalf("Failed to generate config file: %v", err)
+		}
+		os.Exit(0)
 	}
-
-	// Setup logging to file
-	logFile, err := os.OpenFile(config.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	
+	// Load configuration
+	var err error
+	config, err = loadConfig(flags)
 	if err != nil {
-		log.Printf("Warning: Failed to open log file %s: %v. Logging to stderr only.", config.LogFile, err)
-	} else {
-		// Log to both file and stderr
-		multiWriter := io.MultiWriter(os.Stderr, logFile)
-		log.SetOutput(multiWriter)
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+	
+	// Setup logging
+	logFile, err := setupLogging(config)
+	if err != nil {
+		log.Printf("Warning: Failed to setup logging: %v", err)
+	}
+	if logFile != nil {
 		defer logFile.Close()
 	}
-
-	log.Printf("Starting probe with config: warmup=%v, duration=%v",
-		config.WarmupEnabled, config.WarmupDuration)
-	log.Printf("CPU Thresholds: Usage=%.1f%%, IOWait=%.1f%%, IRQ=%.1f%%, SoftIRQ=%.1f%%",
-		config.MaxCPU, config.MaxIOWait, config.MaxIRQ, config.MaxSoftIRQ)
-	log.Printf("Other Thresholds: Memory=%.1f%%, Disk=%.1f%%, Connections=%.0f",
-		config.MaxMemory, config.MaxDisk, config.MaxConnections)
-	log.Printf("Monitoring disk paths: %v", config.DiskPaths)
-	log.Printf("Monitoring network interfaces: %v", config.NetworkInterfaces)
-	log.Printf("Logging to: %s", config.LogFile)
-
+	
+	logInfo("Starting probe with config: warmup=%v, duration=%v",
+		config.Warmup.Enabled, config.Warmup.Duration)
+	logInfo("CPU Thresholds: Usage=%.1f%%, IOWait=%.1f%%, IRQ=%.1f%%, SoftIRQ=%.1f%%",
+		config.Thresholds.MaxCPU, config.Thresholds.MaxIOWait, config.Thresholds.MaxIRQ, config.Thresholds.MaxSoftIRQ)
+	logInfo("Other Thresholds: Memory=%.1f%%, Disk=%.1f%%, Connections=%.0f",
+		config.Thresholds.MaxMemory, config.Thresholds.MaxDisk, config.Thresholds.MaxConnections)
+	logInfo("Monitoring disk paths: %v", config.Monitoring.DiskPaths)
+	logInfo("Monitoring network interfaces: %v", config.Monitoring.NetworkInterfaces)
+	logInfo("Logging to: %s", config.Logging.File)
+	logDebug(config, "Debug logging enabled")
+	
 	// Start metric collection goroutines
 	go collectCPUMetric()
 	go collectMemoryMetric()
 	go collectDiskMetric()
 	go collectNetworkMetric()
-
+	
 	// Start display if enabled
-	if config.DisplayEnabled {
-		log.Printf("Starting metrics display (interval: %v)", config.DisplayInterval)
-		go displayMetrics()
+	if config.Display.Enabled {
+		logInfo("Starting metrics display (interval: %v)", config.Display.Interval)
+		go displayMetrics(config)
 	}
-
+	
 	// Setup HTTP handlers
 	http.HandleFunc("/health", healthHandler)
-
+	
 	// Start HTTP server
-	log.Printf("Probe listening on %s", config.Port)
-	if err := http.ListenAndServe(config.Port, nil); err != nil {
+	logInfo("Probe listening on %s", config.Server.Port)
+	if err := http.ListenAndServe(config.Server.Port, nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

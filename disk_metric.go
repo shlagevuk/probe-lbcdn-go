@@ -31,14 +31,14 @@ func getDiskUsage(path string) (float64, error) {
 func collectDiskMetric() {
 	for {
 		// Apply warmup factor if enabled
-		effectiveMax := config.MaxDisk
-		if config.WarmupEnabled {
+		effectiveMax := config.Thresholds.MaxDisk
+		if config.Warmup.Enabled {
 			warmupFactor := getWarmupFactor()
-			effectiveMax = config.MaxDisk * warmupFactor
+			effectiveMax = config.Thresholds.MaxDisk * warmupFactor
 		}
 
 		// Check each disk path
-		for _, path := range config.DiskPaths {
+		for _, path := range config.Monitoring.DiskPaths {
 			diskUsage, err := getDiskUsage(path)
 			if err != nil {
 				log.Printf("Error collecting disk metric for %s: %v", path, err)

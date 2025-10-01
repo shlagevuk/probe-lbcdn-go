@@ -102,15 +102,15 @@ func collectCPUMetric() {
 
 		// Apply warmup factor if enabled
 		warmupFactor := 1.0
-		if config.WarmupEnabled {
+		if config.Warmup.Enabled {
 			warmupFactor = getWarmupFactor()
 		}
 
 		// Calculate effective max values with warmup
-		effectiveMaxCPU := config.MaxCPU * warmupFactor
-		effectiveMaxIOWait := config.MaxIOWait * warmupFactor
-		effectiveMaxIRQ := config.MaxIRQ * warmupFactor
-		effectiveMaxSoftIRQ := config.MaxSoftIRQ * warmupFactor
+		effectiveMaxCPU := config.Thresholds.MaxCPU * warmupFactor
+		effectiveMaxIOWait := config.Thresholds.MaxIOWait * warmupFactor
+		effectiveMaxIRQ := config.Thresholds.MaxIRQ * warmupFactor
+		effectiveMaxSoftIRQ := config.Thresholds.MaxSoftIRQ * warmupFactor
 
 		// Determine status for each metric
 		cpuStatus := "OK"
@@ -164,8 +164,8 @@ func collectCPUMetric() {
 // getWarmupFactor returns a factor between 0.0 and 1.0 based on elapsed time
 func getWarmupFactor() float64 {
 	elapsed := time.Since(config.startTime)
-	if elapsed >= config.WarmupDuration {
+	if elapsed >= config.Warmup.Duration {
 		return 1.0
 	}
-	return elapsed.Seconds() / config.WarmupDuration.Seconds()
+	return elapsed.Seconds() / config.Warmup.Duration.Seconds()
 }

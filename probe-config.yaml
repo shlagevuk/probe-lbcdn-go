@@ -1,0 +1,27 @@
+server:
+    port: :8080
+warmup:
+    enabled: true
+    duration: 1m0s
+thresholds:
+    max_cpu: 80
+    max_iowait: 20
+    max_irq: 5
+    max_softirq: 10
+    max_memory: 90
+    max_disk: 95
+    max_connections: 1000
+monitoring:
+    disk_paths:
+        - /
+        - /var
+        - /tmp
+    network_interfaces:
+        - eth0
+        - lo
+logging:
+    file: /home/ojanin/work/probe-lbcdn-go/build/probe.log
+    debug: false
+display:
+    enabled: false
+    interval: 3s

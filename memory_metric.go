@@ -53,10 +53,10 @@ func collectMemoryMetric() {
 		}
 
 		// Apply warmup factor if enabled
-		effectiveMax := config.MaxMemory
-		if config.WarmupEnabled {
+		effectiveMax := config.Thresholds.MaxMemory
+		if config.Warmup.Enabled {
 			warmupFactor := getWarmupFactor()
-			effectiveMax = config.MaxMemory * warmupFactor
+			effectiveMax = config.Thresholds.MaxMemory * warmupFactor
 		}
 
 		// Determine status
