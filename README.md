@@ -12,19 +12,21 @@ This probe monitors various system metrics and compares them against configured 
 ## Features
 
 - **Concurrent Metric Collection**: Each metric is gathered in its own goroutine for optimal performance
+- **YAML Configuration**: Flexible configuration system with command-line overrides
 - **Configurable Thresholds**: Set maximum values for each monitored resource
 - **Warmup Mode**: Gradually ramp up threshold limits on startup instead of immediately enforcing full limits
+- **Debug Logging**: Enhanced logging with file/line information for troubleshooting
+- **Terminal Display**: Optional real-time metrics display with color-coded status
 - **JSON API**: Simple HTTP endpoint returning health status
 - **Unix-focused**: Designed for Linux and Unix-like operating systems
 
-## Planned Metrics
+## Monitored Metrics
 
-- CPU usage
-- Memory usage
-- Disk I/O
-- Network connections
-- Load average
-- Disk space utilization
+- **CPU usage** - User, system, IOWait, IRQ, and SoftIRQ percentages
+- **Memory usage** - Available memory percentage
+- **Disk space utilization** - Per-path disk usage monitoring
+- **Network connections** - Active TCP connection count
+- **Network bandwidth** - Per-interface traffic monitoring
 
 ## Warmup Mode
 
@@ -51,25 +53,67 @@ Each metric collector runs as an independent goroutine, allowing:
 }
 ```
 
-## Usage
+## Quick Start
+
+### 1. Build the probe
+```bash
+make build
+```
+
+### 2. Generate configuration file
+```bash
+./build/probe-lbcdn --generate-config
+```
+
+### 3. Run the probe
+```bash
+# With default settings
+./build/probe-lbcdn
+
+# With debug logging and terminal display
+./build/probe-lbcdn --debug --display
+
+# With custom configuration file
+./build/probe-lbcdn --config myconfig.yaml
+```
+
+## Command Line Options
 
 ```bash
-# Start probe with default configuration
-./probe-lbcdn-go
+# Configuration
+--config, -c <file>     Path to YAML configuration file (default: probe-config.yaml)
+--generate-config       Generate default configuration file and exit
 
-# Start with warmup enabled (300 second ramp-up)
-./probe-lbcdn-go --warmup --warmup-duration=300
+# Logging and Display  
+--debug, -d             Enable debug logging with file/line information
+--display               Enable terminal metrics display (disabled by default)
 
-# Configure custom thresholds
-./probe-lbcdn-go --max-cpu=80 --max-memory=90 --max-disk=95
+# Help
+--help, -h              Show help and usage information
 ```
 
 ## Configuration
 
-Configuration can be provided via:
-- Command-line flags
-- Environment variables
-- Configuration file (YAML/JSON)
+The probe uses a hierarchical configuration system:
+
+1. **Default values** - Built-in sensible defaults
+2. **YAML configuration file** - Override defaults with file settings
+3. **Command-line flags** - Final overrides for specific options
+
+### Configuration File Structure
+
+Generate a default configuration file to see all available options:
+```bash
+./build/probe-lbcdn --generate-config
+```
+
+The configuration file is organized into sections:
+- **server**: HTTP server settings (port)
+- **warmup**: Warmup mode configuration (enabled, duration)
+- **thresholds**: Maximum values for each metric (CPU, memory, disk, etc.)
+- **monitoring**: Paths and interfaces to monitor
+- **logging**: Log file location and debug mode
+- **display**: Terminal display settings
 
 ## Development Status
 
