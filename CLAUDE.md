@@ -92,6 +92,48 @@ The application uses YAML configuration files with command-line overrides:
 
 All metric collectors have corresponding test files (*_test.go). Tests use Go's standard testing package.
 
+### Testing Requirements
+**CRITICAL: Always run tests after ANY Go code changes**
+- Run `make test` immediately after modifying any `.go` file
+- Ensure all tests pass before considering changes complete
+- Update test files when changing configuration structures or function signatures
+- Test failures indicate breaking changes that must be fixed before proceeding
+
+### Test Coverage
+- CPU metrics: Unit tests for metric collection and status logic
+- Memory metrics: Memory usage calculation and threshold validation  
+- Disk metrics: Disk usage monitoring and path sanitization
+- Network metrics: Connection counting and bandwidth measurement
+
+## Commit Guidelines
+
+### Commit Message Format
+Use conventional commit format for all changes:
+
+```
+<type>(<scope>): <description>
+
+<body>
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Types:** feat, fix, docs, style, refactor, test, chore
+**Scopes:** config, metrics, logging, display, api, build
+**Examples:**
+- `feat(config): add YAML configuration system with CLI options`
+- `fix(metrics): update CPU metric collection to handle edge cases`  
+- `test(network): add comprehensive bandwidth measurement tests`
+- `docs(readme): update configuration documentation`
+
+### Commit Requirements
+- Always run `make test` before committing
+- Include scope of changes in commit message
+- Describe both what changed and why
+- Use imperative mood ("add" not "added")
+
 ## API Response Format
 
 The /health endpoint returns JSON with:
