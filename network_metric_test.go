@@ -143,13 +143,13 @@ func TestNetworkMetricStatusLogic(t *testing.T) {
 func TestCollectNetworkMetricUpdatesCache(t *testing.T) {
 	// Setup test config with multiple interfaces
 	oldConfig := config
-	config = ProbeConfig{
-		WarmupEnabled:     false,
-		WarmupDuration:    60 * time.Second,
-		MaxConnections:    1000.0,
-		NetworkInterfaces: []string{"lo", "eth0"},
-		startTime:         time.Now(),
+	config = Config{
+		startTime: time.Now(),
 	}
+	config.Warmup.Enabled = false
+	config.Warmup.Duration = 60 * time.Second
+	config.Thresholds.MaxConnections = 1000.0
+	config.Monitoring.NetworkInterfaces = []string{"lo", "eth0"}
 	defer func() { config = oldConfig }()
 
 	// Clear cache
@@ -163,7 +163,7 @@ func TestCollectNetworkMetricUpdatesCache(t *testing.T) {
 		connections = 0
 	}
 
-	effectiveMax := config.MaxConnections
+	effectiveMax := config.Thresholds.MaxConnections
 	status := "OK"
 	if connections > effectiveMax {
 		status = "KO"
@@ -178,7 +178,7 @@ func TestCollectNetworkMetricUpdatesCache(t *testing.T) {
 	cacheMutex.Unlock()
 
 	// Collect bandwidth for each interface
-	for _, iface := range config.NetworkInterfaces {
+	for _, iface := range config.Monitoring.NetworkInterfaces {
 		bytesPerSec, err := getNetworkBandwidth(iface)
 		if err != nil {
 			bytesPerSec = 0

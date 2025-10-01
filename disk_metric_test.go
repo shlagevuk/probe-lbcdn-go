@@ -105,13 +105,13 @@ func TestDiskMetricStatusLogic(t *testing.T) {
 func TestCollectDiskMetricUpdatesCache(t *testing.T) {
 	// Setup test config with multiple paths
 	oldConfig := config
-	config = ProbeConfig{
-		WarmupEnabled:  false,
-		WarmupDuration: 60 * time.Second,
-		MaxDisk:        95.0,
-		DiskPaths:      []string{"/", "/tmp"},
-		startTime:      time.Now(),
+	config = Config{
+		startTime: time.Now(),
 	}
+	config.Warmup.Enabled = false
+	config.Warmup.Duration = 60 * time.Second
+	config.Thresholds.MaxDisk = 95.0
+	config.Monitoring.DiskPaths = []string{"/", "/tmp"}
 	defer func() { config = oldConfig }()
 
 	// Clear cache
@@ -120,8 +120,8 @@ func TestCollectDiskMetricUpdatesCache(t *testing.T) {
 	cacheMutex.Unlock()
 
 	// Run one iteration of metric collection
-	effectiveMax := config.MaxDisk
-	for _, path := range config.DiskPaths {
+	effectiveMax := config.Thresholds.MaxDisk
+	for _, path := range config.Monitoring.DiskPaths {
 		diskUsage, err := getDiskUsage(path)
 		if err != nil {
 			diskUsage = 0

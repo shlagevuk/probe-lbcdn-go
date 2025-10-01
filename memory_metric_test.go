@@ -66,12 +66,12 @@ func TestMemoryMetricStatusLogic(t *testing.T) {
 func TestCollectMemoryMetricUpdatesCache(t *testing.T) {
 	// Setup test config
 	oldConfig := config
-	config = ProbeConfig{
-		WarmupEnabled:  false,
-		WarmupDuration: 60 * time.Second,
-		MaxMemory:      90.0,
-		startTime:      time.Now(),
+	config = Config{
+		startTime: time.Now(),
 	}
+	config.Warmup.Enabled = false
+	config.Warmup.Duration = 60 * time.Second
+	config.Thresholds.MaxMemory = 90.0
 	defer func() { config = oldConfig }()
 
 	// Clear cache
@@ -85,7 +85,7 @@ func TestCollectMemoryMetricUpdatesCache(t *testing.T) {
 		memUsage = 0
 	}
 
-	effectiveMax := config.MaxMemory
+	effectiveMax := config.Thresholds.MaxMemory
 	status := "OK"
 	if memUsage > effectiveMax {
 		status = "KO"

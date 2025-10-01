@@ -93,15 +93,15 @@ func TestCPUMetricStatusLogic(t *testing.T) {
 func TestCollectCPUMetricUpdatesCache(t *testing.T) {
 	// Setup test config
 	oldConfig := config
-	config = ProbeConfig{
-		WarmupEnabled:  false,
-		WarmupDuration: 60 * time.Second,
-		MaxCPU:         80.0,
-		MaxIOWait:      20.0,
-		MaxIRQ:         5.0,
-		MaxSoftIRQ:     10.0,
-		startTime:      time.Now(),
+	config = Config{
+		startTime: time.Now(),
 	}
+	config.Warmup.Enabled = false
+	config.Warmup.Duration = 60 * time.Second
+	config.Thresholds.MaxCPU = 80.0
+	config.Thresholds.MaxIOWait = 20.0
+	config.Thresholds.MaxIRQ = 5.0
+	config.Thresholds.MaxSoftIRQ = 10.0
 	defer func() { config = oldConfig }()
 
 	// Reset CPU cache
@@ -128,22 +128,22 @@ func TestCollectCPUMetricUpdatesCache(t *testing.T) {
 	cacheMutex.Lock()
 	metricCache["cpu_usage"] = MetricStatus{
 		Current: metrics.Usage,
-		Max:     config.MaxCPU,
+		Max:     config.Thresholds.MaxCPU,
 		Status:  "OK",
 	}
 	metricCache["cpu_iowait"] = MetricStatus{
 		Current: metrics.IOWait,
-		Max:     config.MaxIOWait,
+		Max:     config.Thresholds.MaxIOWait,
 		Status:  "OK",
 	}
 	metricCache["cpu_irq"] = MetricStatus{
 		Current: metrics.IRQ,
-		Max:     config.MaxIRQ,
+		Max:     config.Thresholds.MaxIRQ,
 		Status:  "OK",
 	}
 	metricCache["cpu_softirq"] = MetricStatus{
 		Current: metrics.SoftIRQ,
-		Max:     config.MaxSoftIRQ,
+		Max:     config.Thresholds.MaxSoftIRQ,
 		Status:  "OK",
 	}
 	cacheMutex.Unlock()
