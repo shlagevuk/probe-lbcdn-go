@@ -90,7 +90,7 @@ jobs:
         go build -v -ldflags="-s -w" -o dist/probe-lbcdn-${{ matrix.suffix }} .
         
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: probe-lbcdn-${{ matrix.suffix }}
         path: dist/probe-lbcdn-${{ matrix.suffix }}
@@ -107,14 +107,16 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: ./artifacts
+        pattern: probe-lbcdn-*
+        merge-multiple: true
         
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: artifacts/*/probe-lbcdn-*
+        files: artifacts/probe-lbcdn-*
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
