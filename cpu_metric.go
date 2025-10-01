@@ -29,8 +29,8 @@ type cpuSnapshot struct {
 }
 
 var (
-	cpuCache      cpuSnapshot
-	cpuCacheMutex sync.Mutex
+	cpuCache       cpuSnapshot
+	cpuCacheMutex  sync.Mutex
 	cpuInitialized bool
 )
 

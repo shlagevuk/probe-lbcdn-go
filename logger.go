@@ -10,7 +10,7 @@ import (
 func setupLogging(config Config) (*os.File, error) {
 	var logFile *os.File
 	var err error
-	
+
 	// Open log file if specified
 	if config.Logging.File != "" {
 		logFile, err = os.OpenFile(config.Logging.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -18,7 +18,7 @@ func setupLogging(config Config) (*os.File, error) {
 			log.Printf("Warning: Failed to open log file %s: %v. Logging to stderr only.", config.Logging.File, err)
 		}
 	}
-	
+
 	// Configure log output
 	if logFile != nil {
 		// Log to both file and stderr
@@ -28,7 +28,7 @@ func setupLogging(config Config) (*os.File, error) {
 		// Log to stderr only
 		log.SetOutput(os.Stderr)
 	}
-	
+
 	// Set log flags based on debug mode
 	if config.Logging.Debug {
 		// Include date, time, and file info for debug mode
@@ -38,7 +38,7 @@ func setupLogging(config Config) (*os.File, error) {
 		// Standard format for production
 		log.SetFlags(log.LstdFlags)
 	}
-	
+
 	return logFile, nil
 }
 

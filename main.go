@@ -23,7 +23,6 @@ type HealthResponse struct {
 	Metrics   map[string]MetricStatus `json:"metrics"`
 }
 
-
 var (
 	config      Config
 	metricCache = make(map[string]MetricStatus)
@@ -67,13 +66,13 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Parse command line flags
 	flags := parseCommandLineFlags()
-	
+
 	// Show help and exit
 	if flags.Help {
 		showHelp()
 		os.Exit(0)
 	}
-	
+
 	// Generate config file and exit
 	if flags.GenerateConfig {
 		if err := generateConfigFile(flags.ConfigFile); err != nil {
@@ -81,14 +80,14 @@ func main() {
 		}
 		os.Exit(0)
 	}
-	
+
 	// Load configuration
 	var err error
 	config, err = loadConfig(flags)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
-	
+
 	// Setup logging
 	logFile, err := setupLogging(config)
 	if err != nil {
@@ -97,7 +96,7 @@ func main() {
 	if logFile != nil {
 		defer logFile.Close()
 	}
-	
+
 	logInfo("Starting probe with config: warmup=%v, duration=%v",
 		config.Warmup.Enabled, config.Warmup.Duration)
 	logInfo("CPU Thresholds: Usage=%.1f%%, IOWait=%.1f%%, IRQ=%.1f%%, SoftIRQ=%.1f%%",
@@ -108,22 +107,22 @@ func main() {
 	logInfo("Monitoring network interfaces: %v", config.Monitoring.NetworkInterfaces)
 	logInfo("Logging to: %s", config.Logging.File)
 	logDebug(config, "Debug logging enabled")
-	
+
 	// Start metric collection goroutines
 	go collectCPUMetric()
 	go collectMemoryMetric()
 	go collectDiskMetric()
 	go collectNetworkMetric()
-	
+
 	// Start display if enabled
 	if config.Display.Enabled {
 		logInfo("Starting metrics display (interval: %v)", config.Display.Interval)
 		go displayMetrics(config)
 	}
-	
+
 	// Setup HTTP handlers
 	http.HandleFunc("/health", healthHandler)
-	
+
 	// Start HTTP server
 	logInfo("Probe listening on %s", config.Server.Port)
 	if err := http.ListenAndServe(config.Server.Port, nil); err != nil {
